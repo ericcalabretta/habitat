@@ -10,6 +10,7 @@ steps:
   # the /bin/true fallback
   - label: ":habicat: :boom: Destroy release channel"
     command: .buildkite/scripts/destroy_release_channel.sh || /bin/true
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
 
@@ -17,6 +18,7 @@ steps:
 
   - label: ":linux: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -30,13 +32,24 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab"
-    command: /bin/true
-    skip: "No Windows builders yet"
+    command: .buildkite/scripts/build_component.ps1 -Component hab -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
     agents:
-      queue: habitat-release
+      queue: default-windows
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - label: ":mac: :habicat: core/hab"
     command: .buildkite/scripts/build_mac_release.sh
+    skip: "Testing Windows builds"
     concurrency_group: "habitat/release/macos"
     # We only want to run one build at a time because these are long-lived VMs and the builds
     # are by definition not very isolated
@@ -55,6 +68,7 @@ steps:
 
   - label: ":linux: :habicat: :hammer_and_wrench: core/hab-plan-build"
     command: .buildkite/scripts/build_component.sh plan-build
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -69,14 +83,24 @@ steps:
 
 
   - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
-    command: /bin/true
-    skip: "No Windows builders yet"
+    command: .buildkite/scripts/build_component.ps1 -Component plan-build-ps1 -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    skip: "Testing Windows builds"
     agents:
-      queue: habitat-release
+      queue: default-windows
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
 
   # This must pull in the core/hab we built ^^^
   - label: ":linux: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.sh bintray-publish
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -90,16 +114,29 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-bintray-publish"
-    command: /bin/true
-    skip: "No Windows builders yet"
+    command: .buildkite/scripts/bintray_publish.ps1 -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
     agents:
-      queue: habitat-release
+      queue: default-windows
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+            - BINTRAY_USER
+            - BINTRAY_KEY
 
   - wait
 
   # This must pull in the core/backline we built ^^^
   - label: ":drum_with_drumsticks: :habicat: :drum_with_drumsticks: core/hab-backline"
     command: .buildkite/scripts/build_component.sh backline
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -117,6 +154,7 @@ steps:
   # TODO: This only depends on core/hab, so it could theoretically be built alongside plan-build and backline
   - label: ":linux: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.sh studio
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -131,14 +169,14 @@ steps:
 
   - label: ":windows: :habicat: core/hab-studio"
     command: /bin/true
-    skip: "No Windows builders yet"
     agents:
-      queue: habitat-release
+      queue: default-windows
 
   - wait
 
   - label: ":linux: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.sh sup
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -153,9 +191,8 @@ steps:
 
   - label: ":windows: :habicat: core/hab-sup"
     command: /bin/true
-    skip: "No Windows builders yet"
     agents:
-      queue: habitat-release
+      queue: default-windows
 
   - wait
 
@@ -164,6 +201,7 @@ steps:
   # TODO: Create an ACI emoji
   - label: ":habicat: core/hab-pkg-aci"
     command: .buildkite/scripts/build_component.sh pkg-aci
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -171,6 +209,7 @@ steps:
 
   - label: ":linux: :docker: core/hab-pkg-export-docker"
     command: .buildkite/scripts/build_component.sh pkg-export-docker
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -178,14 +217,14 @@ steps:
 
   - label: ":windows: :docker: core/hab-pkg-export-docker"
     command: /bin/true
-    skip: "No Windows builders yet"
     agents:
-      queue: habitat-release
+      queue: default-windows
     env:
-      BUILD_PKG_TARGET: "x86_64-linux"
+      BUILD_PKG_TARGET: "x86_64-windows"
 
   - label: ":k8s: core/hab-pkg-export-kubernetes"
     command: .buildkite/scripts/build_component.sh pkg-export-kubernetes
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -193,6 +232,7 @@ steps:
 
   - label: ":helm: core/hab-pkg-export-helm"
     command: .buildkite/scripts/build_component.sh pkg-export-helm
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -200,6 +240,7 @@ steps:
 
   - label: ":linux: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -214,13 +255,13 @@ steps:
 
   - label: ":windows: :package: core/hab-pkg-export-tar"
     command: /bin/true
-    skip: "No Windows builders yet"
     agents:
-      queue: habitat-release
+      queue: default-windows
 
   # TODO: Create a Mesos emoji
   - label: ":habicat: core/hab-pkg-mesosize"
     command: .buildkite/scripts/build_component.sh pkg-mesosize
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -232,6 +273,7 @@ steps:
   # hab-pkg-export-docker, so it must be built after that.
   - label: ":cloudfoundry: core/hab-pkg-cfize"
     command: .buildkite/scripts/build_component.sh pkg-cfize
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -241,6 +283,7 @@ steps:
 
   - label: ":docker: Upload containers to Docker Hub"
     command: .buildkite/scripts/dockerhub_upload.sh
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -248,6 +291,7 @@ steps:
   # TODO Create a JFrog emoji
   - label: ":linux: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -262,12 +306,12 @@ steps:
 
   - label: ":windows: Upload (but don't publish!) artifacts to Bintray"
     command: /bin/true
-    skip: "No Windows builders yet"
     agents:
-      queue: habitat-release
+      queue: default-windows
 
   - label: ":mac: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload_macos.sh
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
       # NOTE: We don't need to run this on a Mac.
@@ -341,5 +385,6 @@ steps:
 
   - label: ":pipeline:"
     command: .buildkite/scripts/finish_release.sh
+    skip: "Testing Windows builds"
     agents:
       queue: pipeline-trigger
