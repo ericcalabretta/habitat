@@ -26,8 +26,10 @@ use std::{
 
 use actix;
 use actix_web::{
-    http::StatusCode, pred::Predicate, server, App, FromRequest, HttpRequest, HttpResponse, Path,
-    Request,
+    http::{self, StatusCode},
+    middleware::{Middleware, Started},
+    pred::Predicate,
+    server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
@@ -142,6 +144,48 @@ impl AppState {
     }
 }
 
+// Our authentication middleware
+struct Authentication;
+
+impl Middleware<AppState> for Authentication {
+    fn start(&self, req: &HttpRequest<AppState>) -> actix_web::Result<Started> {
+        let current_token = &req
+            .state()
+            .gateway_state
+            .read()
+            .expect("GatewayState lock is poisoned")
+            .auth_token;
+
+        // If there's no auth token in the state, just return. Everything will continue to function
+        // unauthenticated.
+        if current_token.is_none() {
+            return Ok(Started::Done);
+        }
+
+        // From this point forward, we know that we have an auth token in the state. Therefore,
+        // anything short of a fully formed Authorization header containing a Bearer token that
+        // matches the value we have in our state, results in an Unauthorized response.
+
+        let hdr = match req.headers().get(http::header::AUTHORIZATION) {
+            Some(hdr) => hdr.to_str().unwrap(), // unwrap Ok
+            None => return Ok(Started::Response(HttpResponse::Unauthorized().finish())),
+        };
+
+        let hdr_components: Vec<&str> = hdr.split_whitespace().collect();
+        if hdr_components.len() != 2 || hdr_components[0] != "Bearer" {
+            return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
+        }
+
+        let incoming_token = hdr_components[1];
+
+        if current_token.as_ref().unwrap() != incoming_token {
+            return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
+        }
+
+        Ok(Started::Done)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum ServerStartup {
     NotStarted,
@@ -170,7 +214,9 @@ impl Server {
 
             let bind = server::new(move || {
                 let app_state = AppState::new(gateway_state.clone());
-                App::with_state(app_state).configure(routes)
+                App::with_state(app_state)
+                    .middleware(Authentication)
+                    .configure(routes)
             }).workers(thread_count)
             .bind(listen_addr.to_string());
 
