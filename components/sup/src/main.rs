@@ -210,11 +210,9 @@ fn mgrcfg_from_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         gossip_permanent: m.is_present("PERMANENT_PEER"),
         ring_key: get_ring_key(m)?,
         gossip_peers: get_peers(m)?,
+        gossip_listen: get_gossip_listen_addr(m)?,
         ..Default::default()
     };
-    if let Some(addr_str) = m.value_of("LISTEN_GOSSIP") {
-        cfg.gossip_listen = GossipListenAddr::from_str(addr_str)?;
-    }
     if let Some(addr_str) = m.value_of("LISTEN_HTTP") {
         cfg.http_listen = http_gateway::ListenAddr::from_str(addr_str)?;
     }
@@ -282,6 +280,13 @@ fn get_ring_key(m: &ArgMatches) -> Result<Option<SymKey>> {
                 Err(_) => Ok(None),
             },
         },
+    }
+}
+
+fn get_gossip_listen_addr(m: &ArgMatches) -> Result<GossipListenAddr> {
+    match m.value_of("LISTEN_GOSSIP") {
+        Some(addr_str) => GossipListenAddr::from_str(addr_str),
+        None => Err(sup_error!(Error::IPFailed)),
     }
 }
 

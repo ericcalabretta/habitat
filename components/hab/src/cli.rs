@@ -27,6 +27,8 @@ use url::Url;
 use command::studio;
 use feat;
 
+static DEFAULT_ADDRESS_ENVVAR: &'static str = "HAB_LISTEN_GOSSIP";
+
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
         .about("Alias for 'config apply'")
@@ -857,9 +859,8 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         // is displayed confusingly as `hab-sup`
         // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
         (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-        (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
-            "The listen address for the Gossip System Gateway. If not specified, the value will \
-            be taken from the HAB_LISTEN_GOSSIP environment variable if defined. [default: 0.0.0.0:9638]")
+              (@arg LISTEN_GOSSIP: --("listen-gossip") env(DEFAULT_ADDRESS_ENVVAR) default_value("0.0.0.0:9638") {valid_socket_addr}
+            "The listen address for the Gossip System Gateway.")
         (@arg LISTEN_HTTP: --("listen-http") +takes_value {valid_socket_addr}
             "The listen address for the HTTP Gateway. If not specified, the value will \
             be taken from the HAB_LISTEN_HTTP environment variable if defined. [default: 0.0.0.0:9631]")
