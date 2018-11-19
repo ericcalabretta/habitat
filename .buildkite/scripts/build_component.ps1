@@ -51,7 +51,7 @@ Push-Location "C:\build"
         Invoke-Expression "buildkite-agent meta-data set 'hab-artifact' '$pkg_artifact'"
     } Elseif ($component -eq 'studio') {
         Write-Host "--- :buildkite: Recording metadata for $pkg_ident"
-        Invoke-Expression "buildkite-agent meta-data set 'studio-version-windows' $pkg_ident'"       
+        Invoke-Expression "buildkite-agent meta-data set 'studio-version-windows' $pkg_ident"       
     } Else {
         Write-Host "Not recording any metadata for $pkg_ident, none required."
     } 

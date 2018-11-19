@@ -206,9 +206,20 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-sup"
-    command: /bin/true
+    command: .buildkite/scripts/build_component.ps1 -Component hab-sup -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
     agents:
       queue: default-windows
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - wait
 
@@ -232,11 +243,22 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":windows: :docker: core/hab-pkg-export-docker"
-    command: /bin/true
+    command: .buildkite/scripts/build_component.ps1 -Component pkg-export-docker -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
     agents:
       queue: default-windows
     env:
+      HAB_BLDR_CHANNEL: unstable
       BUILD_PKG_TARGET: "x86_64-windows"
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+      
 
   - label: ":k8s: core/hab-pkg-export-kubernetes"
     command: .buildkite/scripts/build_component.sh pkg-export-kubernetes
@@ -271,9 +293,21 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :package: core/hab-pkg-export-tar"
-    command: /bin/true
+    command: .buildkite/scripts/build_component.ps1 -Component pkg-export-tar -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
     agents:
       queue: default-windows
+    env:
+      HAB_BLDR_CHANNEL: unstable
+      BUILD_PKG_TARGET: "x86_64-windows"
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
 
   # TODO: Create a Mesos emoji
   - label: ":habicat: core/hab-pkg-mesosize"
