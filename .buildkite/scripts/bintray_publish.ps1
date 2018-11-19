@@ -36,10 +36,11 @@ Write-Host "--- :windows: Publishing Windows 'hab' ${BuildVersion}-${ReleaseVers
 # TODO - FAKE RELEASE STUFF
 $bintray_repository="unstable"
 
-"$Env:BUILDKITE_USER:$Env:BUILDKITE_KEY"
+# Grab the credentials
+$BuildkiteUser = "$Env:HABITAT_BUILDKITE_USER"
+$BuildkitePassword = ConvertTo-SecureString -String "$Env:HABITAT_BUILDKITE_KEY" -AsPlainText -Force
+$BKCredentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $BuildkiteUser, $BuildkitePassword
 
-
-Invoke-WebRequest "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${BuildVersion}-${ReleaseVersion}/publish" -Body $Body -Method 'POST'
-
+Invoke-WebRequest "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${BuildVersion}-${ReleaseVersion}/publish" -Method "POST" -Credential $BKCredentials
 
 exit $LASTEXITCODE
