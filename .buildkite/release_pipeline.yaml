@@ -26,6 +26,7 @@ steps:
   
   - label: ":linux: :two: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -76,6 +77,7 @@ steps:
   
   - label: ":linux: :two: :habicat: :hammer_and_wrench: core/hab-plan-build"
     command: .buildkite/scripts/build_component.sh plan-build
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -107,6 +109,7 @@ steps:
   
   - label: ":linux: :two: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.sh bintray-publish
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -141,6 +144,7 @@ steps:
   
   - label: ":drum_with_drumsticks: :habicat: :two: :drum_with_drumsticks: core/hab-backline"
     command: .buildkite/scripts/build_component.sh backline
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -159,6 +163,7 @@ steps:
 
   - label: ":linux: :two: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.sh studio
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -192,6 +197,7 @@ steps:
   
   - label: ":linux: :two: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.sh sup
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -256,6 +262,7 @@ steps:
   
   - label: ":linux: :two: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
@@ -307,6 +314,7 @@ steps:
   
   - label: ":linux: :two: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
+    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
