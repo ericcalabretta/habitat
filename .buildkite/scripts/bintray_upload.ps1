@@ -9,6 +9,8 @@ param (
     [string]$BaseHabVersion="latest",
     # The builder channel to pull from. Defaults to stable
     [string]$SourceChannel="stable"
+    # The bintray channel/repo to push to. Defaults to unstable
+    [string]$TargetChannel="unstable"
 )
 
 # Import shared functions
@@ -26,18 +28,17 @@ Write-Host "--- Installing buildkite agent in container"
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
 Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1'))
 
-$BuildVersion = Invoke-Expression "buildkite-agent meta-data get version --job $Env:BUILDKITE_JOB_ID"
-$ReleaseVersion = Invoke-Expression "buildkite-agent meta-data get hab-release-windows --job $Env:BUILDKITE_JOB_ID"
+$HabArtifact = Invoke-Expression "buildkite-agent meta-data get hab-artifact-windows --job $Env:BUILDKITE_JOB_ID"
 
-Write-Host "--- :windows: Publishing Windows 'hab' ${BuildVersion}-${ReleaseVersion}"
-# TODO - FAKE RELEASE STUFF
-$bintray_repository="unstable"
+Write-Host "--- :windows: Install core/hab-bintray-publish package"
+Invoke-Expression "$baseHabExe pkg install --channel=$SourceChannel core/hab-bintray-publish"
 
-# Grab the credentials
-$BuildkiteUser = "$Env:HABITAT_BUILDKITE_USER"
-$BuildkitePassword = ConvertTo-SecureString -String "$Env:HABITAT_BUILDKITE_KEY" -AsPlainText -Force
-$BKCredentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $BuildkiteUser, $BuildkitePassword
+Write-Host "--- :windows: Install core/hab package"
+Invoke-Expression "$baseHabExe pkg install --channel=$SourceChannel core/hab"
 
-Invoke-WebRequest "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${BuildVersion}-${ReleaseVersion}/publish" -Method "POST" -Credential $BKCredentials
-
-exit $LASTEXITCODE
+Write-Host "--- :habicat: :windows: Uploading core/hab to Bintray"
+$Env:HAB_BLDR_CHANNEL=$SourceChannel
+$Env:BINTRAY_USER=$Env:HABITAT_BINTRAY_USER
+$Env:BINTRAY_KEY=$Env:HABITAT_BINTRAY_KEY
+$Env:BINTRAY_PASSPHRASE=$Env:HABITAT_BINTRAY_PASSPHRASE
+Invoke-Expression "$baseHabExe pkg exec core/hab-bintray-publish publish-hab -s -r $TargetChannel C:\hab\cache\artifacts\$HabArtifact"
