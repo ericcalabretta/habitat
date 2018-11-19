@@ -39,7 +39,7 @@ $Body = @{
     User = "$Env:BUILDKITE_USER"
     password = "$Env:BUILDKITE_KEY"
 }
-Invoke-WebRequest "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${BuildVersion}-${ReleaseVersion}/publish" -SessionVariable 'Session' -Body $Body -Method 'POST'
+Invoke-WebRequest "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${BuildVersion}-${ReleaseVersion}/publish" -Body $Body -Method 'POST'
 
 
 exit $LASTEXITCODE
