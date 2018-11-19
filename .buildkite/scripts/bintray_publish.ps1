@@ -35,10 +35,10 @@ Write-Host "THING: $ReleaseVersion and job $Env:BUILDKITE_JOB_ID"
 Write-Host "--- :windows: Publishing Windows 'hab' ${BuildVersion}-${ReleaseVersion}"
 # TODO - FAKE RELEASE STUFF
 $bintray_repository="unstable"
-$Body = @{
-    User = "$Env:BUILDKITE_USER"
-    password = "$Env:BUILDKITE_KEY"
-}
+
+"$Env:BUILDKITE_USER:$Env:BUILDKITE_KEY"
+
+
 Invoke-WebRequest "https://api.bintray.com/content/habitat/${bintray_repository}/hab-x86_64-windows/${BuildVersion}-${ReleaseVersion}/publish" -Body $Body -Method 'POST'
 
 
