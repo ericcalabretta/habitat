@@ -357,26 +357,14 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: Upload (but don't publish!) artifacts to Bintray"
-    command: .buildkite/scripts/bintray_upload.ps1 -SourceChannel unstable -TargetChannel unstable
+    command: .buildkite/scripts/bintray_upload.sh
+    skip: "Testing Windows builds"
     agents:
-      queue: default-windows
+      queue: habitat-release
     env:
-      HAB_BLDR_CHANNEL: unstable
       BUILD_PKG_TARGET: "x86_64-windows"
-    plugins:
-      - docker#v2.0.0:
-          image: "chefes/windows-base:latest"
-          shell: [ "powershell", "-Command" ]
-          environment:
-            - HAB_BLDR_CHANNEL
-            - HAB_AUTH_TOKEN
-            - BUILDKITE_JOB_ID
-            - BUILDKITE_AGENT_ACCESS_TOKEN
-            - HABITAT_BINTRAY_USER
-            - HABITAT_BINTRAY_KEY
-            - HABITAT_BINTRAY_PASSPHRASE
 
-  - label: ":mac: Upload (but don't publish!) artifacts to Bintray"
+      - label: ":mac: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload_macos.sh
     skip: "Testing Windows builds"
     agents:
