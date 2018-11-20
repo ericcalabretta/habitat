@@ -358,13 +358,12 @@ steps:
 
   - label: ":windows: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
-    skip: "Testing Windows builds"
     agents:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-windows"
 
-      - label: ":mac: Upload (but don't publish!) artifacts to Bintray"
+  - label: ":mac: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload_macos.sh
     skip: "Testing Windows builds"
     agents:
