@@ -3,12 +3,10 @@
 #Requires -Version 5
 
 param (
-    # # The name of the component to be built. Defaults to none
-    # [string]$Component,
     # The base hab version to run the build with. Defaults to latest
     [string]$BaseHabVersion="latest",
     # The builder channel to pull from. Defaults to stable
-    [string]$SourceChannel="stable"
+    [string]$SourceChannel="stable",
     # The bintray channel/repo to push to. Defaults to unstable
     [string]$TargetChannel="unstable"
 )
@@ -37,8 +35,8 @@ Write-Host "--- :windows: Install core/hab package"
 Invoke-Expression "$baseHabExe pkg install --channel=$SourceChannel core/hab"
 
 Write-Host "--- :habicat: :windows: Uploading core/hab to Bintray"
-$Env:HAB_BLDR_CHANNEL=$SourceChannel
-$Env:BINTRAY_USER=$Env:HABITAT_BINTRAY_USER
-$Env:BINTRAY_KEY=$Env:HABITAT_BINTRAY_KEY
-$Env:BINTRAY_PASSPHRASE=$Env:HABITAT_BINTRAY_PASSPHRASE
+$Env:HAB_BLDR_CHANNEL="$SourceChannel"
+$Env:BINTRAY_USER="$Env:HABITAT_BINTRAY_USER"
+$Env:BINTRAY_KEY="$Env:HABITAT_BINTRAY_KEY"
+$Env:BINTRAY_PASSPHRASE="$Env:HABITAT_BINTRAY_PASSPHRASE"
 Invoke-Expression "$baseHabExe pkg exec core/hab-bintray-publish publish-hab -s -r $TargetChannel C:\hab\cache\artifacts\$HabArtifact"
