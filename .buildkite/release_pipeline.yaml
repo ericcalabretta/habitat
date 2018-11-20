@@ -357,7 +357,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: Upload (but don't publish!) artifacts to Bintray"
-    command: .buildkite/scripts/bintray_upload.ps1 pkg-export-tar -SourceChannel unstable -TargetChannel unstable
+    command: .buildkite/scripts/bintray_upload.ps1 -SourceChannel unstable -TargetChannel unstable
     agents:
       queue: default-windows
     env:
