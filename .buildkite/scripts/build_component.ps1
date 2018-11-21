@@ -41,8 +41,10 @@ Push-Location "C:\build"
     Write-Host "--- Running hab pkg build for $Component"
     Invoke-Expression "$baseHabExe pkg build components\$Component --keys core" -ErrorAction Stop
     . "components\$Component\habitat\results\last_build.ps1"
-    Write-Host "Running hab pkg upload for $Component"
-    Invoke-Expression "$baseHabExe pkg upload components\$Component\habitat\results\$pkg_artifact" -ErrorAction Stop
+    
+    $ReleaseChannel = Invoke-Expression "buildkite-agent meta-data get release-channel"
+    Write-Host "Running hab pkg upload for $Component to channel $ReleaseChannel"
+    Invoke-Expression "$baseHabExe pkg upload components\$Component\habitat\results\$pkg_artifact --channel=$ReleaseChannel" -ErrorAction Stop
 
     If ($Component -eq 'hab') {
         Write-Host "--- :buildkite: Recording metadata $pkg_ident"
