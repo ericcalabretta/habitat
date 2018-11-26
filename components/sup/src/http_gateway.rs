@@ -29,14 +29,13 @@ use actix_web::{
     http::StatusCode, pred::Predicate, server, App, FromRequest, HttpRequest, HttpResponse, Path,
     Request,
 };
+use hcore::templating::hooks::{self, HealthCheckHook};
 use hcore::{env as henv, service::ServiceGroup};
 use protocol::socket_addr_env_or_default;
 use serde_json::{self, Value as Json};
 
 use error::{Error, Result, SupError};
 use manager;
-use manager::service::hooks::{self, HealthCheckHook};
-use manager::service::HealthCheck;
 
 use feat;
 
@@ -120,16 +119,6 @@ struct HealthCheckBody {
     status: String,
     stdout: String,
     stderr: String,
-}
-
-impl Into<StatusCode> for HealthCheck {
-    fn into(self) -> StatusCode {
-        match self {
-            HealthCheck::Ok | HealthCheck::Warning => StatusCode::OK,
-            HealthCheck::Critical => StatusCode::SERVICE_UNAVAILABLE,
-            HealthCheck::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
-        }
-    }
 }
 
 struct AppState {

@@ -48,7 +48,9 @@ use std::str::FromStr;
 use std::thread;
 
 use clap::{ArgMatches, Shell};
-use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use common::command::package::install::{
+    InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+};
 use common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
 use futures::prelude::*;
 use hcore::binlink::default_binlink_dir;
@@ -214,6 +216,7 @@ fn start(ui: &mut UI) -> Result<()> {
             ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
             ("build", Some(m)) => sub_pkg_build(ui, m)?,
             ("channels", Some(m)) => sub_pkg_channels(ui, m)?,
+            ("compile", Some(m)) => sub_pkg_compile(ui, m)?,
             ("config", Some(m)) => sub_pkg_config(m)?,
             ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
             ("env", Some(m)) => sub_pkg_env(m)?,
@@ -467,6 +470,12 @@ fn sub_pkg_binds(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn sub_pkg_compile(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+
+    command::pkg::compile::start(ui, &ident, &*FS_ROOT)
+}
+
 fn sub_pkg_dependencies(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     command::pkg::dependencies::start(&ident, &*FS_ROOT)
@@ -646,6 +655,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let channel = channel_from_matches(m);
     let install_sources = install_sources_from_matches(m)?;
     let token = maybe_auth_token(&m);
+    let install_hook_mode = get_install_hook_mode_from_input(m).unwrap_or_default();
     let install_mode = if feat::is_enabled(feat::OfflineInstall) && m.is_present("OFFLINE") {
         InstallMode::Offline
     } else {
@@ -674,6 +684,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
             token.as_ref().map(String::as_str),
             &install_mode,
             &local_package_usage,
+            &install_hook_mode,
         )?;
 
         if m.is_present("BINLINK") {
@@ -1619,6 +1630,11 @@ fn get_binding_mode_from_input(m: &ArgMatches) -> Option<protocol::types::Bindin
 
 fn get_group_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("GROUP").map(ToString::to_string)
+}
+
+fn get_install_hook_mode_from_input(m: &ArgMatches) -> Option<InstallHookMode> {
+    m.value_of("INSTALL_HOOK_MODE")
+        .and_then(|f| InstallHookMode::from_str(f).ok())
 }
 
 #[cfg(target_os = "windows")]

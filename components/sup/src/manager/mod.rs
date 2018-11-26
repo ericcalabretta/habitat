@@ -56,6 +56,8 @@ use hcore::os::signals::{self, SignalEvent};
 use hcore::package::metadata::PackageType;
 use hcore::package::{Identifiable, PackageIdent, PackageInstall, PackageTarget};
 use hcore::service::ServiceGroup;
+use hcore::templating::health::HealthCheck;
+pub use hcore::templating::package::Pkg;
 use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use protocol;
 use protocol::net::{self, ErrCode, NetResult};
@@ -67,11 +69,11 @@ use toml;
 
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
-use self::service::{health::HealthCheck, DesiredState, IntoServiceSpec, Pkg, ProcessState};
 pub use self::service::{
     CompositeSpec, ConfigRendering, Service, ServiceBind, ServiceProxy, ServiceSpec, Spec,
     Topology, UpdateStrategy,
 };
+use self::service::{DesiredState, IntoServiceSpec, ProcessState};
 use self::service_updater::ServiceUpdater;
 use self::spec_watcher::{SpecWatcher, SpecWatcherEvent};
 pub use self::sys::Sys;
