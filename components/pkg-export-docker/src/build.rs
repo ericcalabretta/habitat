@@ -380,7 +380,7 @@ impl<'a> BuildSpec<'a> {
             &InstallMode::default(),
             // TODO (CM): pass through and enable ignore-local mode
             &LocalPackageUsage::default(),
-            &InstallHookMode::default(),
+            &InstallHookMode::Ignore,
         )?;
         Ok(package_install.into())
     }
